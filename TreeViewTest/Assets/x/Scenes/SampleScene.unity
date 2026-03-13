@@ -524,11 +524,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b25ec362f3dd43c99f96c45e14d48ee9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemTemplate: {fileID: 9197481963319205126, guid: 399e5de1fda9c4056b866b6e522b94a9, type: 3}
+  itemTemplate: {fileID: 9197481963319205126, guid: cc91dad987a274571b69e4a8e8110cf2, type: 3}
   treeViewDocument: {fileID: 1830529575}
   data: {fileID: 11400000, guid: 3f06d62ed2a284fbdb72990312470af0, type: 2}
-  itemHeight: 33
+  itemHeight: 50
   reorderable: 0
+  persistRuntimeData: 1
+  persistenceFileName: TreeViewTaskSave.json
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

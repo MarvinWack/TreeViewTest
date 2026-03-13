@@ -1,0 +1,32 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/listViewItem.uss?fileID=7433441132597879392&amp;guid=833cadc7c437445bb84e50b2bb157143&amp;type=3#listViewItem" />
+    <engine:VisualElement name="itemContainer" picking-mode="Ignore" style="flex-grow: 1; flex-direction: row; background-color: rgb(67, 67, 67); border-left-color: rgb(255, 255, 255); border-right-color: rgb(255, 255, 255); border-top-color: rgb(255, 255, 255); border-bottom-color: rgb(255, 255, 255); border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; margin-bottom: 5px; padding-bottom: 5px; width: 1200px;">
+        <engine:Toggle name="archiveToggle" class="my-text-field" />
+        <engine:TextField placeholder-text="Task Name" name="name" class="my-text-field" style="border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; background-image: none; width: 100px;" />
+        <engine:TextField name="description" placeholder-text="Description" class="my-text-field" style="width: 300px;">
+            <Bindings>
+                <engine:DataBinding property="value" data-source-path="description" data-source-type="Runtime.TaskData, Assembly-CSharp" binding-mode="TwoWay" />
+            </Bindings>
+        </engine:TextField>
+        <engine:UnsignedIntegerField placeholder-text="42" max-length="3" name="estimatedMinutes" class="my-text-field" style="width: 50px;">
+            <Bindings>
+                <engine:DataBinding property="value" data-source-path="estimatedMinutes" data-source-type="Runtime.TaskData, Assembly-CSharp" binding-mode="TwoWay" />
+            </Bindings>
+        </engine:UnsignedIntegerField>
+        <engine:TextField placeholder-text="Expected Challenges" name="expectedChallanges" class="my-text-field" style="width: 300px;">
+            <Bindings>
+                <engine:DataBinding property="value" data-source-path="expectedChallenges" data-source-type="Runtime.TaskData, Assembly-CSharp" binding-mode="TwoWay" />
+            </Bindings>
+        </engine:TextField>
+        <engine:TextField placeholder-text="Encountered Challenges" name="encounteredChallenges" class="my-text-field" style="width: 300px;">
+            <Bindings>
+                <engine:DataBinding property="value" data-source-path="encounteredChallenges" data-source-type="Runtime.TaskData, Assembly-CSharp" binding-mode="TwoWay" />
+            </Bindings>
+        </engine:TextField>
+        <engine:UnsignedIntegerField value="42" name="actualMinutes" max-length="3" class="my-text-field" style="width: 50px;">
+            <Bindings>
+                <engine:DataBinding property="value" data-source-path="actualMinutes" data-source-type="Runtime.TaskData, Assembly-CSharp" binding-mode="TwoWay" />
+            </Bindings>
+        </engine:UnsignedIntegerField>
+    </engine:VisualElement>
+</engine:UXML>

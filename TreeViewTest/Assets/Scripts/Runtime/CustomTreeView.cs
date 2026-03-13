@@ -261,20 +261,20 @@ namespace Runtime
             var controller = treeView.viewController;
             // dataItem.Value = index;
 
-            var nameLabel = element.Q<Label>("name");
+            var nameLabel = element.Q<TextField>("name");
             nameLabel.SetBinding("value", new DataBinding
             {
                 dataSource = dataItem,
                 dataSourcePath = new PropertyPath(nameof(dataItem.Name)),
-                bindingMode = BindingMode.ToTarget
+                bindingMode = BindingMode.TwoWay
             });
 
-            var idLabel = element.Q<Label>("value");
+            var idLabel = element.Q<TextField>("description");
             idLabel.SetBinding("value", new DataBinding
             {
                 dataSource = dataItem,
                 dataSourcePath = new PropertyPath(nameof(dataItem.Value)),
-                bindingMode = BindingMode.ToTarget
+                bindingMode = BindingMode.TwoWay
             });
         }
 

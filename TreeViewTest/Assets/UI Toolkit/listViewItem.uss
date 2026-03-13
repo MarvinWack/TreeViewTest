@@ -1,0 +1,48 @@
+.my-text-field #unity-text-input {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 8px;
+    padding-bottom: 0;
+    padding-left: 8px;
+    background-image: none;
+    background-color: rgb(67, 67, 67);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    color: rgb(255, 255, 255);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.my-text-field {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.my-text-field #unity-text-input:hover {
+    background-color: rgb(94, 94, 94);
+}
+
+.my-text-field TextElement {
+}
+
+.my-text-field TextElement:hover {
+}
+
+.my-text-field {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.ListElement {
+}
