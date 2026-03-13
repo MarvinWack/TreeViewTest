@@ -50,8 +50,9 @@ namespace Runtime
                 return DragVisualMode.None;
 
             // Capture expanded items (by DataItem reference) so we can restore after rebuilding
-            var expandedItems = GetExpandedDataItems(items);
-
+            var expandedItems = GetExpandedItemIds(items);
+            Debug.Log(expandedItems.Count);
+            
             // Build list of dragged DataItem references from current selection
             var draggedIndices = new List<int>(treeView.selectedIndices);
             if (draggedIndices.Count == 0) return DragVisualMode.None;
@@ -129,6 +130,11 @@ namespace Runtime
             PopulateList();
             treeView.SetRootItems(items);
             treeView.RefreshItems();
+
+            foreach (var item in expandedItems)
+            {
+                treeView.ExpandItem(item);
+            }
             
             return DragVisualMode.Move;
         }
@@ -241,20 +247,28 @@ namespace Runtime
             for (int i = 0; i < itemsToInsert.Count; i++) list.Insert(index + i, itemsToInsert[i]);
         }
 
-        // helpers
-        private HashSet<DataItem> GetExpandedDataItems(IEnumerable<TreeViewItemData<DataItem>> treeItems)
+        private List<int> GetExpandedItemIds(IEnumerable<TreeViewItemData<DataItem>> treeItems)
         {
-            var set = new HashSet<DataItem>();
-            if (treeItems == null) return set;
+            var expanded = new List<int>();
+            if (treeItems == null || treeView == null) return expanded;
+
             foreach (var item in treeItems)
             {
-                if (treeView.IsExpanded(item.id)) set.Add(item.data);
-                if (item.children != null)
+                try
                 {
-                    foreach (var c in GetExpandedDataItems(item.children)) set.Add(c);
+                    if (treeView.IsExpanded(item.id))
+                        expanded.Add(item.id);
                 }
+                catch (Exception)
+                {
+                    // In some Unity versions or states IsExpanded may throw; ignore and continue
+                }
+
+                if (item.children != null)
+                    expanded.AddRange(GetExpandedItemIds(item.children));
             }
-            return set;
+
+            return expanded;
         }
 
         private void BuildDataItemMaps(IEnumerable<TreeViewItemData<DataItem>> treeItems, DataItem parent, Dictionary<DataItem, int> idMap, Dictionary<DataItem, DataItem> parentMap)

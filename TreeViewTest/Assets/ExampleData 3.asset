@@ -10,30 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: baab0c5e90bab45e59f9d2c22301bcf4, type: 3}
-  m_Name: ExampleData
+  m_Name: ExampleData 3
   m_EditorClassIdentifier: 
   Items:
   - Name: A
     Value: 0
-    Children:
-    - Name: AA
-      Value: 1
-      Children:
-      - Name: AAA
-        Value: 2
-        Children: []
-    - Name: AB
-      Value: 3
-      Children:
-      - Name: ABA
-        Value: 4
-        Children: []
+    Children: []
   - Name: B
-    Value: 5
+    Value: 0
     Children: []
   - Name: C
-    Value: 6
+    Value: 0
     Children: []
   - Name: D
-    Value: 7
+    Value: 0
+    Children: []
+  - Name: E
+    Value: 0
+    Children: []
+  - Name: F
+    Value: 0
+    Children: []
+  - Name: G
+    Value: 0
     Children: []
