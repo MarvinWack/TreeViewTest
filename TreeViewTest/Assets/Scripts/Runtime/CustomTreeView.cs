@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Properties;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,14 +12,14 @@ namespace Runtime
         [SerializeField] private VisualTreeAsset itemTemplate;
         [SerializeField] private UIDocument treeViewDocument;
         [SerializeField] private Data data;
-        
+
         [Header("Settings")]
         [SerializeField] private int itemHeight;
         [SerializeField] private bool reorderable;
-        
+
         private TreeView treeView;
         private VisualElement root;
-        
+
         private List<TreeViewItemData<DataItem>> items;
         private int currentId;
 
@@ -27,11 +28,11 @@ namespace Runtime
             PopulateList();
 
             root = treeViewDocument.rootVisualElement;
-            
+
             SetupButton();
 
             Func<VisualElement> makeItem = () => MakeItem();
-            
+
             treeView = new TreeView(itemHeight, makeItem, BindItems);
             treeView.reorderable = reorderable;
             treeView.horizontalScrollingEnabled = true;
@@ -39,7 +40,7 @@ namespace Runtime
 
             treeView.SetRootItems(items);
             treeView.handleDrop += HandleDrop;
-            
+
             root.Add(treeView);
         }
 
@@ -51,8 +52,8 @@ namespace Runtime
 
             // Capture expanded items (by DataItem reference) so we can restore after rebuilding
             var expandedItems = GetExpandedItemIds(items);
-            Debug.Log(expandedItems.Count);
-            
+            // Debug.Log(expandedItems.Count);
+
             // Build list of dragged DataItem references from current selection
             var draggedIndices = new List<int>(treeView.selectedIndices);
             if (draggedIndices.Count == 0) return DragVisualMode.None;
@@ -135,7 +136,9 @@ namespace Runtime
             {
                 treeView.ExpandItem(item);
             }
-            
+
+            AssetDatabase.SaveAssets();
+
             return DragVisualMode.Move;
         }
 
@@ -178,6 +181,7 @@ namespace Runtime
                 }
 
                 var item = new TreeViewItemData<DataItem>(currentLocalId, dataItem, children);
+                dataItem.Value = currentLocalId;
                 list.Add(item);
             }
 
@@ -192,7 +196,7 @@ namespace Runtime
         private TemplateContainer MakeItem()
         {
             var item = itemTemplate.CloneTree();
-            
+
             return item;
         }
 
@@ -200,7 +204,7 @@ namespace Runtime
         {
             var dataItem = treeView.GetItemDataForIndex<DataItem>(index);
             var controller = treeView.viewController;
-            dataItem.Value = controller.GetIdForIndex(index);
+            // dataItem.Value = index;
 
             var nameLabel = element.Q<Label>("name");
             nameLabel.SetBinding("value", new DataBinding

@@ -13,5 +13,5 @@ public record DataItem
 {
     public string Name;
     public int Value;
-    public List<DataItem> Children;
+    [SerializeReference] public List<DataItem> Children;
 }
