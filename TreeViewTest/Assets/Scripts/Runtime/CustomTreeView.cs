@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Properties;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,6 +15,9 @@ namespace Runtime
         [Header("Settings")]
         [SerializeField] private int itemHeight;
         [SerializeField] private bool reorderable;
+        [Header("Runtime Persistence")]
+        [SerializeField] private bool persistRuntimeData = true;
+        [SerializeField] private string persistenceFileName = "treeview-runtime-state.json";
 
         private TreeView treeView;
         private VisualElement root;
@@ -25,6 +27,9 @@ namespace Runtime
 
         private void OnEnable()
         {
+            if (persistRuntimeData)
+                LoadRuntimeData();
+
             PopulateList();
 
             root = treeViewDocument.rootVisualElement;
@@ -42,6 +47,12 @@ namespace Runtime
             treeView.handleDrop += HandleDrop;
 
             root.Add(treeView);
+        }
+
+        private void OnDisable()
+        {
+            if (persistRuntimeData)
+                SaveRuntimeData();
         }
 
         private DragVisualMode HandleDrop(HandleDragAndDropArgs arg)
@@ -137,7 +148,7 @@ namespace Runtime
                 treeView.ExpandItem(item);
             }
 
-            AssetDatabase.SaveAssets();
+            SaveRuntimeData();
 
             return DragVisualMode.Move;
         }
@@ -154,7 +165,51 @@ namespace Runtime
                 items.Add(itemData);
                 treeView.SetRootItems(items);
                 treeView.Rebuild();
+
+                SaveRuntimeData();
             };
+        }
+
+        private void LoadRuntimeData()
+        {
+            if (data == null)
+                return;
+
+            if (!TreeViewRuntimeStorage.TryLoad(persistenceFileName, out var state, out var error))
+            {
+                if (data.Items == null)
+                    data.Items = new List<DataItem>();
+
+                if (error != "No persisted file exists yet.")
+                    Debug.LogWarning($"Runtime tree data load failed: {error}");
+                return;
+            }
+
+            if (state == null || state.items == null)
+            {
+                Debug.LogWarning("Runtime tree data load failed: persisted payload was null.");
+                data.Items = new List<DataItem>();
+                return;
+            }
+
+            data.Items = state.items;
+        }
+
+        private void SaveRuntimeData()
+        {
+            if (data == null)
+                return;
+
+            if (data.Items == null)
+                data.Items = new List<DataItem>();
+
+            if (!TreeViewRuntimeStorage.TrySave(
+                    persistenceFileName,
+                    new TreeViewRuntimeData { items = data.Items },
+                    out var error))
+            {
+                Debug.LogWarning($"Runtime tree data save failed: {error}");
+            }
         }
 
         private void PopulateList()
@@ -298,5 +353,6 @@ namespace Runtime
             }
             return false;
         }
+
     }
 }
