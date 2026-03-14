@@ -30,11 +30,11 @@ namespace Runtime
             this.fileName = fileName;
         }
 
-        public TreeView SetupTreeView()
+        public TreeView SetupTreeView(int itemHeight, VisualTreeAsset itemTemplate)
         {
-            treeView = new TreeView(_customTreeView.ItemHeight, MakeItem, (element, index) => BindItems(element, index, treeView))
+            treeView = new TreeView(itemHeight, () => MakeItem(itemTemplate), (element, index) => BindItems(element, index, treeView))
             {
-                reorderable = _customTreeView.Reorderable,
+                reorderable = true,
                 horizontalScrollingEnabled = true,
                 virtualizationMethod = CollectionVirtualizationMethod.FixedHeight
             };
@@ -190,9 +190,9 @@ namespace Runtime
             return list;
         }
 
-        private TemplateContainer MakeItem()
+        private TemplateContainer MakeItem(VisualTreeAsset itemTemplate)
         {
-            var item = _customTreeView.ItemTemplate.CloneTree();
+            var item = itemTemplate.CloneTree();
 
             return item;
         }

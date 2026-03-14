@@ -12,7 +12,6 @@ namespace Runtime
 
         [Header("Settings")]
         [SerializeField] private int itemHeight;
-        [SerializeField] private bool reorderable;
         [Header("Runtime Persistence")]
         [SerializeField] private bool persistRuntimeData = true;
 
@@ -24,26 +23,11 @@ namespace Runtime
         {
             activeTasks = new TreeViewManager(this, "currentTasks.json");
         }
-
-        public VisualTreeAsset ItemTemplate
-        {
-            set { itemTemplate = value; }
-            get { return itemTemplate; }
-        }
+        
         public Data Data
         {
             set { data = value; }
             get { return data; }
-        }
-        public int ItemHeight
-        {
-            set { itemHeight = value; }
-            get { return itemHeight; }
-        }
-        public bool Reorderable
-        {
-            set { reorderable = value; }
-            get { return reorderable; }
         }
         public Data activeTasksData
         {
@@ -62,7 +46,7 @@ namespace Runtime
 
             SetupAddButton();
             
-            background.Add(activeTasks.SetupTreeView());
+            background.Add(activeTasks.SetupTreeView(itemHeight, itemTemplate));
         }
 
         private void OnDisable()
