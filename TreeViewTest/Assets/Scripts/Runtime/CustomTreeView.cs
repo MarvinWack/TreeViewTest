@@ -32,7 +32,32 @@ namespace Runtime
             
             background.Add(activeTasks.SetupTreeView(itemHeight, itemTemplate));
             SetupDivider();
-            background.Add(archivedTasks.SetupTreeView(itemHeight, itemTemplate));
+            background.Add(AddArchiveButton());
+
+            var archivedTreeView = archivedTasks.SetupTreeView(itemHeight, itemTemplate);
+            background.Add(archivedTreeView);
+            SetupArchiveButton(archivedTreeView);
+        }
+
+        private void SetupArchiveButton(TreeView archivedTreeView)
+        {
+            background.Q<Button>("archiveButton").clicked += () =>
+            {
+                archivedTreeView.style.display = archivedTreeView.style.display == DisplayStyle.None
+                    ? DisplayStyle.Flex
+                    : DisplayStyle.None;
+            };
+        }
+
+        private VisualElement AddArchiveButton()
+        {
+            var button = new Button
+            {
+                text = "Archive",
+                name = "archiveButton"
+            };
+            
+            return button;
         }
 
         private void SetupDivider()

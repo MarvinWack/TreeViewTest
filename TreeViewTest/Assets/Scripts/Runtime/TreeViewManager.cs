@@ -302,8 +302,7 @@ namespace Runtime
 
         public void LoadRuntimeData()
         {
-            //todo:
-            SaveRuntimeData();
+            // SaveRuntimeData();
             
             if (!TreeViewRuntimeStorage.TryLoad(fileName, out var state, out var error))
             {
