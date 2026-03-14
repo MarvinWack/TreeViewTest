@@ -157,7 +157,7 @@ namespace Runtime
         {
             root.Q<Button>("addButton").clicked += () =>
             {
-                var newItem = new DataItem { Name = data.Items.Count.ToString(), Value = 0 };
+                var newItem = new DataItem { Name = data.Items.Count.ToString()};
                 data.Items.Add(newItem);
                 // Use the running currentId so IDs remain unique across the whole tree
                 var newId = currentId++;
@@ -238,7 +238,7 @@ namespace Runtime
                 }
 
                 var item = new TreeViewItemData<DataItem>(currentLocalId, dataItem, children);
-                dataItem.Value = currentLocalId;
+                // dataItem.Value = currentLocalId;
                 list.Add(item);
             }
 
@@ -263,18 +263,30 @@ namespace Runtime
             var controller = treeView.viewController;
             // dataItem.Value = index;
             element.dataSource = dataItem;
-            
+
             var archiveToggle = element.Q<Toggle>("archiveToggle");
             archiveToggle.RegisterValueChangedCallback(evt =>
             {
                 Debug.Log("toggled");
             });
-            
+
             var nameLabel = element.Q<TextField>("name");
             UIHelper.BindTwoWay(nameLabel, nameof(dataItem.Name));
 
             var idLabel = element.Q<TextField>("description");
             UIHelper.BindTwoWay(idLabel, nameof(dataItem.Description));
+            
+            var estMinField = element.Q<UnsignedIntegerField>("estimatedMinutes");
+            UIHelper.BindTwoWay(estMinField, nameof(dataItem.EstimatedMinutes));
+            
+            var expChallengesField = element.Q<TextField>("expectedChallanges");
+            UIHelper.BindTwoWay(expChallengesField, nameof(dataItem.ExpectedChallenges));
+            
+            var encChallengesField = element.Q<TextField>("encounteredChallenges");
+            UIHelper.BindTwoWay(encChallengesField, nameof(dataItem.EncounteredChallenges));
+            
+            var actMinField = element.Q<UnsignedIntegerField>("actualMinutes");
+            UIHelper.BindTwoWay(actMinField, nameof(dataItem.ActualMinutes));
         }
 
         private bool FindParentListAndIndex(List<DataItem> list, DataItem target, out List<DataItem> parentList, out int index)

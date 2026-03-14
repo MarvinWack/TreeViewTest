@@ -13,6 +13,9 @@ public record DataItem
 {
     public string Name;
     public string Description;
-    public int Value;
+    public string ExpectedChallenges;
+    public int EstimatedMinutes;
+    public string EncounteredChallenges;
+    public int ActualMinutes;
     [SerializeReference] public List<DataItem> Children;
 }
