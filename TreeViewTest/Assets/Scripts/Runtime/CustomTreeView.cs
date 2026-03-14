@@ -14,18 +14,30 @@ namespace Runtime
 
         private VisualElement background;
         private TreeViewManager activeTasks;
+        private TreeViewManager archivedTasks;
 
         private void OnEnable()
         {
-            activeTasks = new TreeViewManager("currentTasks.json", data);
-            activeTasks.LoadRuntimeData(data);
+            activeTasks = new TreeViewManager("activeTasks.json", data.Items);
+            activeTasks.LoadRuntimeData();
             activeTasks.PopulateList();
+            
+            archivedTasks = new TreeViewManager("archivedTasks.json", data.Items);
+            archivedTasks.LoadRuntimeData();
+            archivedTasks.PopulateList();
 
             background = treeViewDocument.rootVisualElement.Q("background");
 
             SetupAddButton();
             
             background.Add(activeTasks.SetupTreeView(itemHeight, itemTemplate));
+            SetupDivider();
+            background.Add(archivedTasks.SetupTreeView(itemHeight, itemTemplate));
+        }
+
+        private void SetupDivider()
+        {
+            throw new System.NotImplementedException();
         }
 
         private void OnDisable()

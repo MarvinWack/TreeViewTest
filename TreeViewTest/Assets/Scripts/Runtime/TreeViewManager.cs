@@ -10,21 +10,21 @@ namespace Runtime
         private readonly string fileName;
         
         private TreeView treeView;
-        private List<TreeViewItemData<DataItem>> items;
+        private List<TreeViewItemData<DataItem>> treeViewItems;
+        private List<DataItem> dataItems;
         private int currentId;
-        private Data data;
 
         public void AddItem(DataItem newItem)
         {
             var newId = currentId++;
             var itemData = new TreeViewItemData<DataItem>(newId, newItem, new List<TreeViewItemData<DataItem>>());
-            items.Add(itemData);
+            treeViewItems.Add(itemData);
         }
 
-        public TreeViewManager(string fileName, Data data)
+        public TreeViewManager(string fileName, List<DataItem> dataItems)
         {
             this.fileName = fileName;
-            this.data = data;
+            this.dataItems = dataItems;
         }
 
         public TreeView SetupTreeView(int itemHeight, VisualTreeAsset itemTemplate)
@@ -35,8 +35,8 @@ namespace Runtime
                 horizontalScrollingEnabled = true,
                 virtualizationMethod = CollectionVirtualizationMethod.FixedHeight
             };
-            treeView.SetRootItems(items);
-            treeView.handleDrop += args => HandleDrop(args, data.Items, items);
+            treeView.SetRootItems(treeViewItems);
+            treeView.handleDrop += args => HandleDrop(args, dataItems, treeViewItems);
             
             return treeView;
         }
@@ -142,14 +142,11 @@ namespace Runtime
         {
             Debug.Log("save called");
             
-            if (data == null)
-                return;
-
-            if (data.Items == null) data.Items = new List<DataItem>();
+            if (dataItems == null) dataItems = new List<DataItem>();
 
             if (!TreeViewRuntimeStorage.TrySave(
                     fileName,
-                    new TreeViewRuntimeData { items = data.Items },
+                    new TreeViewRuntimeData { items = dataItems },
                     out var error))
             {
                 Debug.LogWarning($"Runtime tree data save failed: {error}");
@@ -159,17 +156,17 @@ namespace Runtime
         public void PopulateList()
         {
             currentId = 0;
-            items = new List<TreeViewItemData<DataItem>>();
-            items = BuildTreeItems(data.Items, ref currentId);
+            treeViewItems = new List<TreeViewItemData<DataItem>>();
+            treeViewItems = BuildTreeItems(dataItems, ref currentId);
         }
 
-        private List<TreeViewItemData<DataItem>> BuildTreeItems(List<DataItem> dataItems, ref int id)
+        private List<TreeViewItemData<DataItem>> BuildTreeItems(List<DataItem> items, ref int id)
         {
             var list = new List<TreeViewItemData<DataItem>>();
-            if (dataItems == null)
+            if (items == null)
                 return list;
 
-            foreach (var dataItem in dataItems)
+            foreach (var dataItem in items)
             {
                 var currentLocalId = id++;
 
@@ -194,9 +191,9 @@ namespace Runtime
             return item;
         }
 
-        private void BindItems(VisualElement element, int index, TreeView treeView)
+        private void BindItems(VisualElement element, int index, TreeView tree)
         {
-            var dataItem = treeView.GetItemDataForIndex<DataItem>(index);
+            var dataItem = tree.GetItemDataForIndex<DataItem>(index);
             element.dataSource = dataItem;
 
             var archiveToggle = element.Q<Toggle>("archiveToggle");
@@ -303,14 +300,11 @@ namespace Runtime
             return false;
         }
 
-        public void LoadRuntimeData(Data data)
+        public void LoadRuntimeData()
         {
-            if (data == null)
-                return;
-
             if (!TreeViewRuntimeStorage.TryLoad(fileName, out var state, out var error))
             {
-                if (data.Items == null) data.Items = new List<DataItem>();
+                if (dataItems == null) dataItems = new List<DataItem>();
 
                 if (error != "No persisted file exists yet.")
                     Debug.LogWarning($"Runtime tree data load failed: {error}");
@@ -320,16 +314,16 @@ namespace Runtime
             if (state == null || state.items == null)
             {
                 Debug.LogWarning("Runtime tree data load failed: persisted payload was null.");
-                data.Items = new List<DataItem>();
+                dataItems = new List<DataItem>();
                 return;
             }
 
-            data.Items = state.items;
+            dataItems = state.items;
         }
 
         public void UpdateView()
         {
-            treeView.SetRootItems(items);
+            treeView.SetRootItems(treeViewItems);
             treeView.Rebuild();
         }
     }
