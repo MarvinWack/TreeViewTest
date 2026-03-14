@@ -8,10 +8,21 @@ namespace Runtime
     public class TreeViewManager
     {
         private readonly CustomTreeView _customTreeView;
-        public readonly string fileName;
-        public TreeView currentTasksView;
-        public List<TreeViewItemData<DataItem>> items;
-        public int currentId;
+
+        private readonly string fileName;
+
+        private TreeView treeView;
+
+        private List<TreeViewItemData<DataItem>> items;
+
+        private int currentId;
+
+        public void AddItem(DataItem newItem)
+        {
+            var newId = currentId++;
+            var itemData = new TreeViewItemData<DataItem>(newId, newItem, new List<TreeViewItemData<DataItem>>());
+            items.Add(itemData);
+        }
 
         public TreeViewManager(CustomTreeView customTreeView, string fileName)
         {
@@ -21,7 +32,7 @@ namespace Runtime
 
         public TreeView SetupTreeView()
         {
-            var treeView = new TreeView(_customTreeView.ItemHeight, MakeItem, (element, index) => BindItems(element, index, currentTasksView))
+            treeView = new TreeView(_customTreeView.ItemHeight, MakeItem, (element, index) => BindItems(element, index, treeView))
             {
                 reorderable = _customTreeView.Reorderable,
                 horizontalScrollingEnabled = true,
@@ -250,13 +261,13 @@ namespace Runtime
         private List<int> GetExpandedItemIds(IEnumerable<TreeViewItemData<DataItem>> treeItems)
         {
             var expanded = new List<int>();
-            if (treeItems == null || currentTasksView == null) return expanded;
+            if (treeItems == null || treeView == null) return expanded;
 
             foreach (var item in treeItems)
             {
                 try
                 {
-                    if (currentTasksView.IsExpanded(item.id))
+                    if (treeView.IsExpanded(item.id))
                         expanded.Add(item.id);
                 }
                 catch (Exception)
@@ -293,6 +304,36 @@ namespace Runtime
                 if (IsDescendantOf(c, possibleDescendant)) return true;
             }
             return false;
+        }
+
+        public void LoadRuntimeData(Data data)
+        {
+            if (data == null)
+                return;
+
+            if (!TreeViewRuntimeStorage.TryLoad(fileName, out var state, out var error))
+            {
+                if (data.Items == null) data.Items = new List<DataItem>();
+
+                if (error != "No persisted file exists yet.")
+                    Debug.LogWarning($"Runtime tree data load failed: {error}");
+                return;
+            }
+
+            if (state == null || state.items == null)
+            {
+                Debug.LogWarning("Runtime tree data load failed: persisted payload was null.");
+                data.Items = new List<DataItem>();
+                return;
+            }
+
+            data.Items = state.items;
+        }
+
+        public void UpdateView()
+        {
+            treeView.SetRootItems(items);
+            treeView.Rebuild();
         }
     }
 }

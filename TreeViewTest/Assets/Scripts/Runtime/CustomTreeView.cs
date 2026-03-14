@@ -45,21 +45,24 @@ namespace Runtime
             set { reorderable = value; }
             get { return reorderable; }
         }
+        public Data activeTasksData
+        {
+            set { data = value; }
+            get { return data; }
+        }
 
         private void OnEnable()
         {
-            if (persistRuntimeData)
-                LoadRuntimeData();
+            if (persistRuntimeData) 
+                activeTasks.LoadRuntimeData(activeTasksData);
 
             activeTasks.PopulateList();
 
             background = treeViewDocument.rootVisualElement.Q("background");
 
             SetupAddButton();
-
-            activeTasks.currentTasksView = activeTasks.SetupTreeView();
-
-            background.Add(activeTasks.currentTasksView);
+            
+            background.Add(activeTasks.SetupTreeView());
         }
 
         private void OnDisable()
@@ -73,45 +76,10 @@ namespace Runtime
             {
                 var newItem = new DataItem { Name = data.Items.Count.ToString()};
                 data.Items.Add(newItem);
-                // Use the running currentId so IDs remain unique across the whole tree
-                var newId = activeTasks.currentId++;
-                var itemData = new TreeViewItemData<DataItem>(newId, newItem, new List<TreeViewItemData<DataItem>>());
-                activeTasks.items.Add(itemData);
-                activeTasks.currentTasksView.SetRootItems(activeTasks.items);
-                activeTasks.currentTasksView.Rebuild();
-
+                activeTasks.AddItem(newItem);
+                activeTasks.UpdateView();
                 activeTasks.SaveRuntimeData();
             };
-        }
-
-        private void LoadRuntimeData()
-        {
-            if (data == null)
-                return;
-
-            if (!TreeViewRuntimeStorage.TryLoad(activeTasks.fileName, out var state, out var error))
-            {
-                if (data.Items == null)
-                    data.Items = new List<DataItem>();
-
-                if (error != "No persisted file exists yet.")
-                    Debug.LogWarning($"Runtime tree data load failed: {error}");
-                return;
-            }
-
-            if (state == null || state.items == null)
-            {
-                Debug.LogWarning("Runtime tree data load failed: persisted payload was null.");
-                data.Items = new List<DataItem>();
-                return;
-            }
-
-            data.Items = state.items;
-        }
-
-        private void OnItemIndexChanged(int arg1, int arg2)
-        {
-            UnityEngine.Debug.Log("id" + arg1 + "moved to" + arg2);
         }
     }
 }
