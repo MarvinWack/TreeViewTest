@@ -19,8 +19,8 @@ namespace Runtime
         [SerializeField] private bool persistRuntimeData = true;
         [SerializeField] private string persistenceFileName = "treeview-runtime-state.json";
 
-        private TreeView treeView;
-        private VisualElement root;
+        private TreeView currentTasksView;
+        private VisualElement background;
 
         private List<TreeViewItemData<DataItem>> items;
         private int currentId;
@@ -32,21 +32,27 @@ namespace Runtime
 
             PopulateList();
 
-            root = treeViewDocument.rootVisualElement;
+            background = treeViewDocument.rootVisualElement.Q("background");
 
-            SetupButton();
+            SetupAddButton();
+            
+            currentTasksView = SetupTreeView();
 
-            Func<VisualElement> makeItem = () => MakeItem();
+            background.Add(currentTasksView);
+        }
 
-            treeView = new TreeView(itemHeight, makeItem, BindItems);
-            treeView.reorderable = reorderable;
-            treeView.horizontalScrollingEnabled = true;
-            treeView.virtualizationMethod = CollectionVirtualizationMethod.FixedHeight;
-
+        private TreeView SetupTreeView()
+        {
+            var treeView = new TreeView(itemHeight, MakeItem, BindItems)
+            {
+                reorderable = reorderable,
+                horizontalScrollingEnabled = true,
+                virtualizationMethod = CollectionVirtualizationMethod.FixedHeight
+            };
             treeView.SetRootItems(items);
-            treeView.handleDrop += HandleDrop;
-
-            root.Add(treeView);
+            treeView.handleDrop += args => HandleDrop(args, data.Items);
+            
+            return treeView;
         }
 
         private void OnDisable()
@@ -55,33 +61,32 @@ namespace Runtime
                 SaveRuntimeData();
         }
 
-        private DragVisualMode HandleDrop(HandleDragAndDropArgs arg)
+        private DragVisualMode HandleDrop(HandleDragAndDropArgs args, List<DataItem> dataItems)
         {
             // Only handle Move operations
-            if (arg.dragAndDropData.visualMode != DragVisualMode.Move)
+            if (args.dragAndDropData.visualMode != DragVisualMode.Move)
                 return DragVisualMode.None;
 
-            // Capture expanded items (by DataItem reference) so we can restore after rebuilding
             var expandedItems = GetExpandedItemIds(items);
-            // Debug.Log(expandedItems.Count);
 
             // Build list of dragged DataItem references from current selection
-            var draggedIndices = new List<int>(treeView.selectedIndices);
+            var dropSourceView = args.dragAndDropData.source as TreeView;
+            var draggedIndices = new List<int>(dropSourceView.selectedIndices);
             if (draggedIndices.Count == 0) return DragVisualMode.None;
 
             var draggedItems = new List<DataItem>(draggedIndices.Count);
             foreach (var idx in draggedIndices)
-                draggedItems.Add(treeView.GetItemDataForIndex<DataItem>(idx));
+                draggedItems.Add(dropSourceView.GetItemDataForIndex<DataItem>(idx));
 
             // Resolve target parent and target list
-            List<DataItem> targetList = data.Items;
+            List<DataItem> targetList = dataItems;
             DataItem targetParent = null;
-            if (arg.parentId != -1)
+            if (args.parentId != -1)
             {
-                var parentIndex = treeView.viewController.GetIndexForId(arg.parentId);
+                var parentIndex = dropSourceView.viewController.GetIndexForId(args.parentId);
                 if (parentIndex >= 0)
                 {
-                    targetParent = treeView.GetItemDataForIndex<DataItem>(parentIndex);
+                    targetParent = dropSourceView.GetItemDataForIndex<DataItem>(parentIndex);
                     if (targetParent.Children == null)
                         targetParent.Children = new List<DataItem>();
                     targetList = targetParent.Children;
@@ -89,7 +94,7 @@ namespace Runtime
             }
 
             // Determine insertion index
-            int insertAt = arg.insertAtIndex;
+            int insertAt = args.insertAtIndex;
             if (insertAt < 0) insertAt = 0;
 
             // Prevent dropping into own descendant
@@ -107,7 +112,7 @@ namespace Runtime
             var originalIndexes = new List<int>();
             foreach (var d in draggedItems)
             {
-                if (FindParentListAndIndex(data.Items, d, out var pList, out var pIdx))
+                if (FindParentListAndIndex(dataItems, d, out var pList, out var pIdx))
                 {
                     originalParents.Add(pList);
                     originalIndexes.Add(pIdx);
@@ -132,7 +137,7 @@ namespace Runtime
 
             // Remove dragged items from original parents
             foreach (var d in draggedItems)
-                RemoveDataItemRecursive(data.Items, d);
+                RemoveDataItemRecursive(dataItems, d);
 
             // Insert items into target list preserving order
             if (insertAt > targetList.Count) insertAt = targetList.Count;
@@ -140,12 +145,12 @@ namespace Runtime
 
             // Rebuild tree view data and refresh
             PopulateList();
-            treeView.SetRootItems(items);
-            treeView.RefreshItems();
+            dropSourceView.SetRootItems(items);
+            dropSourceView.RefreshItems();
 
             foreach (var item in expandedItems)
             {
-                treeView.ExpandItem(item);
+                dropSourceView.ExpandItem(item);
             }
 
             SaveRuntimeData();
@@ -153,9 +158,9 @@ namespace Runtime
             return DragVisualMode.Move;
         }
 
-        private void SetupButton()
+        private void SetupAddButton()
         {
-            root.Q<Button>("addButton").clicked += () =>
+            background.Q<Button>("addButton").clicked += () =>
             {
                 var newItem = new DataItem { Name = data.Items.Count.ToString()};
                 data.Items.Add(newItem);
@@ -163,8 +168,8 @@ namespace Runtime
                 var newId = currentId++;
                 var itemData = new TreeViewItemData<DataItem>(newId, newItem, new List<TreeViewItemData<DataItem>>());
                 items.Add(itemData);
-                treeView.SetRootItems(items);
-                treeView.Rebuild();
+                currentTasksView.SetRootItems(items);
+                currentTasksView.Rebuild();
 
                 SaveRuntimeData();
             };
@@ -259,8 +264,8 @@ namespace Runtime
 
         private void BindItems(VisualElement element, int index)
         {
-            var dataItem = treeView.GetItemDataForIndex<DataItem>(index);
-            var controller = treeView.viewController;
+            var dataItem = currentTasksView.GetItemDataForIndex<DataItem>(index);
+            var controller = currentTasksView.viewController;
             // dataItem.Value = index;
             element.dataSource = dataItem;
 
@@ -320,13 +325,13 @@ namespace Runtime
         private List<int> GetExpandedItemIds(IEnumerable<TreeViewItemData<DataItem>> treeItems)
         {
             var expanded = new List<int>();
-            if (treeItems == null || treeView == null) return expanded;
+            if (treeItems == null || currentTasksView == null) return expanded;
 
             foreach (var item in treeItems)
             {
                 try
                 {
-                    if (treeView.IsExpanded(item.id))
+                    if (currentTasksView.IsExpanded(item.id))
                         expanded.Add(item.id);
                 }
                 catch (Exception)
