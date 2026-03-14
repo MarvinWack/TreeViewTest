@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.Properties;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -43,14 +42,14 @@ namespace Runtime
 
         private TreeView SetupTreeView()
         {
-            var treeView = new TreeView(itemHeight, MakeItem, BindItems)
+            var treeView = new TreeView(itemHeight, MakeItem, (element, index) => BindItems(element, index, currentTasksView))
             {
                 reorderable = reorderable,
                 horizontalScrollingEnabled = true,
                 virtualizationMethod = CollectionVirtualizationMethod.FixedHeight
             };
             treeView.SetRootItems(items);
-            treeView.handleDrop += args => HandleDrop(args, data.Items);
+            treeView.handleDrop += args => HandleDrop(args, data.Items, items);
             
             return treeView;
         }
@@ -61,13 +60,13 @@ namespace Runtime
                 SaveRuntimeData();
         }
 
-        private DragVisualMode HandleDrop(HandleDragAndDropArgs args, List<DataItem> dataItems)
+        private DragVisualMode HandleDrop(HandleDragAndDropArgs args, List<DataItem> dataItems, List<TreeViewItemData<DataItem>> viewItemDatas)
         {
             // Only handle Move operations
             if (args.dragAndDropData.visualMode != DragVisualMode.Move)
                 return DragVisualMode.None;
 
-            var expandedItems = GetExpandedItemIds(items);
+            var expandedItems = GetExpandedItemIds(viewItemDatas);
 
             // Build list of dragged DataItem references from current selection
             var dropSourceView = args.dragAndDropData.source as TreeView;
@@ -145,7 +144,7 @@ namespace Runtime
 
             // Rebuild tree view data and refresh
             PopulateList();
-            dropSourceView.SetRootItems(items);
+            dropSourceView.SetRootItems(viewItemDatas);
             dropSourceView.RefreshItems();
 
             foreach (var item in expandedItems)
@@ -262,11 +261,9 @@ namespace Runtime
             return item;
         }
 
-        private void BindItems(VisualElement element, int index)
+        private void BindItems(VisualElement element, int index, TreeView treeView)
         {
-            var dataItem = currentTasksView.GetItemDataForIndex<DataItem>(index);
-            var controller = currentTasksView.viewController;
-            // dataItem.Value = index;
+            var dataItem = treeView.GetItemDataForIndex<DataItem>(index);
             element.dataSource = dataItem;
 
             var archiveToggle = element.Q<Toggle>("archiveToggle");
@@ -318,8 +315,11 @@ namespace Runtime
 
         private void InsertDataItemsAt(List<DataItem> list, int index, List<DataItem> itemsToInsert)
         {
-            if (list == null) return; if (index < 0) index = 0; if (index > list.Count) index = list.Count;
-            for (int i = 0; i < itemsToInsert.Count; i++) list.Insert(index + i, itemsToInsert[i]);
+            if (list == null) return; 
+            if (index < 0) index = 0; 
+            if (index > list.Count) index = list.Count;
+            for (int i = 0; i < itemsToInsert.Count; i++) 
+                list.Insert(index + i, itemsToInsert[i]);
         }
 
         private List<int> GetExpandedItemIds(IEnumerable<TreeViewItemData<DataItem>> treeItems)
