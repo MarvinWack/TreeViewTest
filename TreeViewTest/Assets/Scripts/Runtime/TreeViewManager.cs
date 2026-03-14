@@ -7,15 +7,12 @@ namespace Runtime
 {
     public class TreeViewManager
     {
-        private readonly CustomTreeView _customTreeView;
-
         private readonly string fileName;
-
+        
         private TreeView treeView;
-
         private List<TreeViewItemData<DataItem>> items;
-
         private int currentId;
+        private Data data;
 
         public void AddItem(DataItem newItem)
         {
@@ -24,10 +21,10 @@ namespace Runtime
             items.Add(itemData);
         }
 
-        public TreeViewManager(CustomTreeView customTreeView, string fileName)
+        public TreeViewManager(string fileName, Data data)
         {
-            _customTreeView = customTreeView;
             this.fileName = fileName;
+            this.data = data;
         }
 
         public TreeView SetupTreeView(int itemHeight, VisualTreeAsset itemTemplate)
@@ -39,7 +36,7 @@ namespace Runtime
                 virtualizationMethod = CollectionVirtualizationMethod.FixedHeight
             };
             treeView.SetRootItems(items);
-            treeView.handleDrop += args => HandleDrop(args, _customTreeView.Data.Items, items);
+            treeView.handleDrop += args => HandleDrop(args, data.Items, items);
             
             return treeView;
         }
@@ -145,14 +142,14 @@ namespace Runtime
         {
             Debug.Log("save called");
             
-            if (_customTreeView.Data == null)
+            if (data == null)
                 return;
 
-            if (_customTreeView.Data.Items == null) _customTreeView.Data.Items = new List<DataItem>();
+            if (data.Items == null) data.Items = new List<DataItem>();
 
             if (!TreeViewRuntimeStorage.TrySave(
                     fileName,
-                    new TreeViewRuntimeData { items = _customTreeView.Data.Items },
+                    new TreeViewRuntimeData { items = data.Items },
                     out var error))
             {
                 Debug.LogWarning($"Runtime tree data save failed: {error}");
@@ -163,7 +160,7 @@ namespace Runtime
         {
             currentId = 0;
             items = new List<TreeViewItemData<DataItem>>();
-            items = BuildTreeItems(_customTreeView.Data.Items, ref currentId);
+            items = BuildTreeItems(data.Items, ref currentId);
         }
 
         private List<TreeViewItemData<DataItem>> BuildTreeItems(List<DataItem> dataItems, ref int id)

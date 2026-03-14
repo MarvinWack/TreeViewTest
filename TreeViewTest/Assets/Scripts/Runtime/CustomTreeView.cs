@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,34 +11,14 @@ namespace Runtime
 
         [Header("Settings")]
         [SerializeField] private int itemHeight;
-        [Header("Runtime Persistence")]
-        [SerializeField] private bool persistRuntimeData = true;
 
         private VisualElement background;
-
-        private readonly TreeViewManager activeTasks;
-
-        public CustomTreeView()
-        {
-            activeTasks = new TreeViewManager(this, "currentTasks.json");
-        }
-        
-        public Data Data
-        {
-            set { data = value; }
-            get { return data; }
-        }
-        public Data activeTasksData
-        {
-            set { data = value; }
-            get { return data; }
-        }
+        private TreeViewManager activeTasks;
 
         private void OnEnable()
         {
-            if (persistRuntimeData) 
-                activeTasks.LoadRuntimeData(activeTasksData);
-
+            activeTasks = new TreeViewManager("currentTasks.json", data);
+            activeTasks.LoadRuntimeData(data);
             activeTasks.PopulateList();
 
             background = treeViewDocument.rootVisualElement.Q("background");
@@ -51,7 +30,7 @@ namespace Runtime
 
         private void OnDisable()
         {
-            if (persistRuntimeData) activeTasks.SaveRuntimeData();
+            activeTasks.SaveRuntimeData();
         }
 
         private void SetupAddButton()
