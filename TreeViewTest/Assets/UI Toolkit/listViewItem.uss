@@ -24,10 +24,12 @@
     color: rgb(255, 255, 255);
     -unity-text-align: middle-center;
     white-space: nowrap;
+    flex-grow: 1;
 }
 
 .my-text-field {
     background-color: rgba(0, 0, 0, 0);
+    flex-grow: 1;
 }
 
 .my-text-field #unity-text-input:hover {

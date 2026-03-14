@@ -197,6 +197,8 @@ namespace Runtime
 
         private void SaveRuntimeData()
         {
+            Debug.Log("save called");
+            
             if (data == null)
                 return;
 
@@ -260,22 +262,19 @@ namespace Runtime
             var dataItem = treeView.GetItemDataForIndex<DataItem>(index);
             var controller = treeView.viewController;
             // dataItem.Value = index;
-
-            var nameLabel = element.Q<TextField>("name");
-            nameLabel.SetBinding("value", new DataBinding
+            element.dataSource = dataItem;
+            
+            var archiveToggle = element.Q<Toggle>("archiveToggle");
+            archiveToggle.RegisterValueChangedCallback(evt =>
             {
-                dataSource = dataItem,
-                dataSourcePath = new PropertyPath(nameof(dataItem.Name)),
-                bindingMode = BindingMode.TwoWay
+                Debug.Log("toggled");
             });
+            
+            var nameLabel = element.Q<TextField>("name");
+            UIHelper.BindTwoWay(nameLabel, nameof(dataItem.Name));
 
             var idLabel = element.Q<TextField>("description");
-            idLabel.SetBinding("value", new DataBinding
-            {
-                dataSource = dataItem,
-                dataSourcePath = new PropertyPath(nameof(dataItem.Value)),
-                bindingMode = BindingMode.TwoWay
-            });
+            UIHelper.BindTwoWay(idLabel, nameof(dataItem.Description));
         }
 
         private bool FindParentListAndIndex(List<DataItem> list, DataItem target, out List<DataItem> parentList, out int index)

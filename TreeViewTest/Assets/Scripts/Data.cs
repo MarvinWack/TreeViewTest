@@ -12,6 +12,7 @@ public class Data : ScriptableObject
 public record DataItem
 {
     public string Name;
+    public string Description;
     public int Value;
     [SerializeReference] public List<DataItem> Children;
 }
