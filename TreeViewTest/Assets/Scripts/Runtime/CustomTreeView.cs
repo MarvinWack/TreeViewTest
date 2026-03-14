@@ -18,11 +18,11 @@ namespace Runtime
 
         private void OnEnable()
         {
-            activeTasks = new TreeViewManager("activeTasks.json", data.Items);
+            activeTasks = new TreeViewManager("activeTasks.json", data.activeTasks);
             activeTasks.LoadRuntimeData();
             activeTasks.PopulateList();
             
-            archivedTasks = new TreeViewManager("archivedTasks.json", data.Items);
+            archivedTasks = new TreeViewManager("archivedTasks.json", data.archivedTasks);
             archivedTasks.LoadRuntimeData();
             archivedTasks.PopulateList();
 
@@ -37,20 +37,40 @@ namespace Runtime
 
         private void SetupDivider()
         {
-            throw new System.NotImplementedException();
+            // Small visual divider between active and archived lists
+            if (background == null) return;
+
+            var divider = new VisualElement { name = "divider" };
+            // Thin horizontal line
+            divider.style.height = 1;
+            divider.style.marginTop = 8;
+            divider.style.marginBottom = 6;
+            divider.style.backgroundColor = new StyleColor(new Color(0.6f, 0.6f, 0.6f, 1f));
+
+            // Label for the archived section
+            var archivedLabel = new Label("Archived Tasks") { name = "archivedLabel" };
+            archivedLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
+            archivedLabel.style.marginTop = 4;
+            archivedLabel.style.marginBottom = 4;
+            archivedLabel.style.fontSize = 12;
+            archivedLabel.style.color = new StyleColor(Color.white);
+
+            background.Add(divider);
+            background.Add(archivedLabel);
         }
 
         private void OnDisable()
         {
             activeTasks.SaveRuntimeData();
+            archivedTasks.SaveRuntimeData();
         }
 
         private void SetupAddButton()
         {
             background.Q<Button>("addButton").clicked += () =>
             {
-                var newItem = new DataItem { Name = data.Items.Count.ToString()};
-                data.Items.Add(newItem);
+                var newItem = new DataItem { Name = data.activeTasks.Count.ToString()};
+                data.activeTasks.Add(newItem);
                 activeTasks.AddItem(newItem);
                 activeTasks.UpdateView();
                 activeTasks.SaveRuntimeData();

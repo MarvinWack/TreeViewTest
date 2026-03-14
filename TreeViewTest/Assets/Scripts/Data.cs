@@ -5,7 +5,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Data", menuName = "Scriptable Objects/Data")]
 public class Data : ScriptableObject
 {
-    public List<DataItem> Items;
+    public List<DataItem> activeTasks;
+    public List<DataItem> archivedTasks;
 }
 
 [Serializable]
