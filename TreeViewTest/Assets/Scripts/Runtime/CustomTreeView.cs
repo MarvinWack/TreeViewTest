@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -30,15 +31,40 @@ namespace Runtime
 
             SetupAddButton();
             
-            background.Add(activeTasks.SetupTreeView(itemHeight, itemTemplate));
+            background.Add(activeTasks.SetupTreeView(itemHeight, itemTemplate, ToggleItemArchivedStatus));
             SetupDivider();
             background.Add(AddArchiveButton());
 
-            var archivedTreeView = archivedTasks.SetupTreeView(itemHeight, itemTemplate);
+            var archivedTreeView = archivedTasks.SetupTreeView(itemHeight, itemTemplate, ToggleItemArchivedStatus);
             background.Add(archivedTreeView);
             SetupArchiveButton(archivedTreeView);
         }
 
+        private void ToggleItemArchivedStatus(DataItem item)
+        {
+            Debug.Log("Archive status toggled");
+            
+            if (activeTasks.RemoveDataItemRecursive(data.activeTasks, item))
+            {
+                archivedTasks.InsertDataItemsAt(data.archivedTasks, 0, new List<DataItem>{ item });
+            }
+            
+            else if (archivedTasks.RemoveDataItemRecursive(data.archivedTasks, item))
+            {
+                activeTasks.InsertDataItemsAt(data.activeTasks, 0, new List<DataItem>{ item });
+            }
+
+            else
+            {
+                Debug.LogError("Item was not found in either of the lists");
+            }
+
+            activeTasks.UpdateView();
+            archivedTasks.UpdateView();
+            activeTasks.SaveRuntimeData();
+            archivedTasks.SaveRuntimeData();
+        }
+        
         private void SetupArchiveButton(TreeView archivedTreeView)
         {
             background.Q<Button>("archiveButton").clicked += () =>

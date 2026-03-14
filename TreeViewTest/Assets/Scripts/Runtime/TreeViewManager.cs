@@ -27,9 +27,9 @@ namespace Runtime
             this.dataItems = dataItems;
         }
 
-        public TreeView SetupTreeView(int itemHeight, VisualTreeAsset itemTemplate)
+        public TreeView SetupTreeView(int itemHeight, VisualTreeAsset itemTemplate, Action<DataItem> toggleItemCallback)
         {
-            treeView = new TreeView(itemHeight, () => MakeItem(itemTemplate), (element, index) => BindItems(element, index, treeView))
+            treeView = new TreeView(itemHeight, () => MakeItem(itemTemplate), (element, index) => BindItems(element, index, treeView, toggleItemCallback))
             {
                 reorderable = true,
                 horizontalScrollingEnabled = true,
@@ -41,7 +41,7 @@ namespace Runtime
             return treeView;
         }
 
-        private DragVisualMode HandleDrop(HandleDragAndDropArgs args, List<DataItem> dataItems, List<TreeViewItemData<DataItem>> viewItemDatas)
+        private DragVisualMode HandleDrop(HandleDragAndDropArgs args, List<DataItem> items, List<TreeViewItemData<DataItem>> viewItemDatas)
         {
             // Only handle Move operations
             if (args.dragAndDropData.visualMode != DragVisualMode.Move)
@@ -59,7 +59,7 @@ namespace Runtime
                 draggedItems.Add(dropSourceView.GetItemDataForIndex<DataItem>(idx));
 
             // Resolve target parent and target list
-            List<DataItem> targetList = dataItems;
+            List<DataItem> targetList = items;
             DataItem targetParent = null;
             if (args.parentId != -1)
             {
@@ -92,7 +92,7 @@ namespace Runtime
             var originalIndexes = new List<int>();
             foreach (var d in draggedItems)
             {
-                if (FindParentListAndIndex(dataItems, d, out var pList, out var pIdx))
+                if (FindParentListAndIndex(items, d, out var pList, out var pIdx))
                 {
                     originalParents.Add(pList);
                     originalIndexes.Add(pIdx);
@@ -115,9 +115,10 @@ namespace Runtime
                 if (insertAt < 0) insertAt = 0;
             }
 
+            //todo: move to data class
             // Remove dragged items from original parents
             foreach (var d in draggedItems)
-                RemoveDataItemRecursive(dataItems, d);
+                RemoveDataItemRecursive(items, d);
 
             // Insert items into target list preserving order
             if (insertAt > targetList.Count) insertAt = targetList.Count;
@@ -191,7 +192,7 @@ namespace Runtime
             return item;
         }
 
-        private void BindItems(VisualElement element, int index, TreeView tree)
+        private void BindItems(VisualElement element, int index, TreeView tree, Action<DataItem> toggleItemCallback)
         {
             var dataItem = tree.GetItemDataForIndex<DataItem>(index);
             element.dataSource = dataItem;
@@ -199,7 +200,7 @@ namespace Runtime
             var archiveToggle = element.Q<Toggle>("archiveToggle");
             archiveToggle.RegisterValueChangedCallback(evt =>
             {
-                Debug.Log("toggled");
+                toggleItemCallback?.Invoke(dataItem);
             });
 
             var nameLabel = element.Q<TextField>("name");
@@ -232,7 +233,7 @@ namespace Runtime
             return false;
         }
 
-        private bool RemoveDataItemRecursive(List<DataItem> list, DataItem target)
+        public bool RemoveDataItemRecursive(List<DataItem> list, DataItem target)
         {
             if (list == null) return false;
             for (int i = 0; i < list.Count; i++)
@@ -243,7 +244,7 @@ namespace Runtime
             return false;
         }
 
-        private void InsertDataItemsAt(List<DataItem> list, int index, List<DataItem> itemsToInsert)
+        public void InsertDataItemsAt(List<DataItem> list, int index, List<DataItem> itemsToInsert)
         {
             if (list == null) return; 
             if (index < 0) index = 0; 
